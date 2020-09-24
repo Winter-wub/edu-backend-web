@@ -17,22 +17,39 @@ export default function Header() {
     await auth.signOut();
   };
   return (
-    <nav className="navbar navbar-light bg-light">
+    <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container-fluid">
-        <NavLink to="/" className="navbar-brand">
+        <NavLink className="navbar-brand" to="/">
           {config.app.title}
-          <div className="badge bg-primary">Admin Tools</div>
         </NavLink>
-        <ul className="navbar-nav">
-          <li className="nav-item">
-            <NavLink className="nav-link" to="/categories">
-              Categories
-            </NavLink>
-          </li>
-        </ul>
-        <div className="d-flex ml-auto">
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span className="navbar-toggler-icon" />
+        </button>
+        <div className="collapse navbar-collapse" id="navbarNav">
+          <ul className="navbar-nav">
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/categories">
+                Categories
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/students">
+                Students
+              </NavLink>
+            </li>
+          </ul>
+        </div>
+        <div className="ml-auto">
           <button className="btn btn-outline-danger" onClick={handleLoginOut}>
-            Log out
+            Logout
           </button>
         </div>
       </div>

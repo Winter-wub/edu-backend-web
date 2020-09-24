@@ -1,24 +1,23 @@
 module.exports = {
   env: {
     browser: true,
-    es2021: true
+    es2020: true,
   },
   extends: [
-    "react-app",
-    "standard",
     "plugin:react/recommended",
-    "eslint-config-react-app",
+    "standard",
+    "prettier",
+    "prettier/flowtype",
     "prettier/react",
     "prettier/standard",
-    "prettier"
   ],
   parserOptions: {
     ecmaFeatures: {
-      jsx: true
+      jsx: true,
     },
-    ecmaVersion: 12,
-    sourceType: "module"
+    ecmaVersion: 11,
+    sourceType: "module",
   },
   plugins: ["react"],
-  rules: {}
+  rules: {},
 };
