@@ -11,7 +11,7 @@ import {
   FaArrowUp,
   FaCopy,
   FaPenFancy,
-  FaRegTrashAlt
+  FaRegTrashAlt,
 } from "react-icons/fa";
 
 export default function Categories() {
@@ -42,7 +42,7 @@ export default function Categories() {
             created_at:
               data && data.created_at
                 ? moment(data.created_at.toDate()).format("DD/MM/YYYY hh:mm")
-                : "-"
+                : "-",
           };
         });
         setCourses(coursesData);
@@ -72,7 +72,7 @@ export default function Categories() {
       const result = await swal.fire({
         icon: "question",
         text: "คุณแน่ใจแล้วใช่ไหมที่จะบันทึก",
-        showCancelButton: true
+        showCancelButton: true,
       });
       if (result.value) {
         await firestore
@@ -83,7 +83,7 @@ export default function Categories() {
           .set(
             {
               ...data,
-              updated_at: new Date()
+              updated_at: new Date(),
             },
             { merge: true }
           );
@@ -107,7 +107,8 @@ export default function Categories() {
     } catch (e) {
       console.log(e);
       await swal.fire({
-        text: "กรุณาลองใหม่อีกครั้ง"
+        icon: "error",
+        text: "กรุณาลองใหม่อีกครั้ง",
       });
     } finally {
       setLoad(false);
@@ -120,7 +121,7 @@ export default function Categories() {
       const result = await swal.fire({
         text: "แน่ใจแล้วใช่ไหมที่จะลบ",
         icon: "warning",
-        showCancelButton: true
+        showCancelButton: true,
       });
       if (result.value) {
         await firestore
@@ -134,7 +135,7 @@ export default function Categories() {
     } catch (e) {
       console.log(e);
       await swal.fire({
-        text: "กรุณาลองใหม่อีกครั้ง"
+        text: "กรุณาลองใหม่อีกครั้ง",
       });
     } finally {
       setLoad(false);
