@@ -21,6 +21,7 @@ export default function Header() {
       <div className="container-fluid">
         <NavLink className="navbar-brand" to="/">
           {config.app.title}
+          <div className="badge bg-primary ml-1">Admin Tool</div>
         </NavLink>
         <button
           className="navbar-toggler"
