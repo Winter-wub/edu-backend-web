@@ -56,6 +56,14 @@ export default function Students() {
     }
   };
   const handleSave = async (data) => {
+    const nullishData = { ...data };
+    Object.keys(nullishData).forEach((key) => {
+      if (!nullishData[key]) {
+        delete nullishData[key];
+      } else if (key === "birth_date") {
+        nullishData[key] = new Date(nullishData[key]);
+      }
+    });
     try {
       const result = await swal.fire({
         icon: "info",
@@ -66,13 +74,18 @@ export default function Students() {
         await firestore
           .collection(config.collections.students)
           .doc(select.id)
-          .set({
-            ...data,
-            updated_at: new Date(),
-          });
+          .set(
+            {
+              ...nullishData,
+              updated_at: new Date(),
+            },
+            { merge: true }
+          );
       }
       await fetchStudents();
+      setSelect(null);
     } catch (e) {
+      console.log(e);
       await swal.fire({
         icon: "error",
         text: "กรุณาลองใหม่อีกครั้ง",
