@@ -45,6 +45,7 @@ export default function Categories() {
                 : "-",
           };
         });
+        console.log(coursesData);
         setCourses(coursesData);
       } catch (e) {
         console.log(e);
@@ -186,7 +187,7 @@ export default function Categories() {
             </div>
           </div>
           <div className="row mt-3 g-2">
-            <div className="col">
+            <div className="col-6">
               {type !== "" && (
                 <div className="card">
                   <div className="card-body">

@@ -98,7 +98,7 @@ export default function Students() {
       <div className="container-fluid ">
         <div className="d-flex mt-3 flex-column">
           <div className="row">
-            <div className="col">
+            <div className="col-7">
               {!load && (
                 <div className="card">
                   <div className="card-body">

@@ -6,6 +6,7 @@ import Home from "./Views/Home";
 import Login from "./Views/Login";
 import Categories from "./Views/Categories";
 import Students from "./Views/Students";
+import Quiz from "./Views/Quiz";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/login" component={Login} />
         <Route path="/categories" component={Categories} />
         <Route path="/students" component={Students} />
+        <Route path="/quiz" component={Quiz} />
       </Switch>
     </BrowserRouter>
   );
