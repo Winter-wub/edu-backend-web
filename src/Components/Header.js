@@ -38,12 +38,12 @@ export default function Header() {
           <ul className="navbar-nav">
             <li className="nav-item">
               <NavLink className="nav-link" to="/categories">
-                Categories
+                Contents
               </NavLink>
             </li>
             <li className="nav-item">
               <NavLink className="nav-link" to="/quiz">
-                Exercise
+                Exercises
               </NavLink>
             </li>
             <li className="nav-item">
