@@ -369,7 +369,7 @@ export default function Quiz() {
                                 </div>
                                 <div className="text-secondary small">
                                   Latest Done:
-                                  {moment(ele.answers[0].start_at).format(
+                                  {moment(ele?.answers?.[0]?.start_at).format(
                                     "DD/MM/YYYY hh:mm"
                                   )}
                                 </div>
