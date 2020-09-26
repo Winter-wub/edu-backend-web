@@ -1,9 +1,28 @@
-import { FaPenFancy, FaRegTrashAlt } from "react-icons/fa";
+import {
+  FaArrowDown,
+  FaArrowUp,
+  FaPenFancy,
+  FaPlus,
+  FaRegTrashAlt,
+} from "react-icons/fa";
 import React from "react";
 
-export default function QuizList({ select, handleSelect, quiz }) {
+export default function QuizList({
+  select,
+  handleSelect,
+  quiz,
+  addQuiz,
+  deleteQuiz,
+  sortBy,
+  handleOrderby,
+}) {
   return (
     <div className="card">
+      <div className="card-header">
+        <button className="btn btn-success" onClick={addQuiz}>
+          Add Exercise <FaPlus />
+        </button>
+      </div>
       <div className="card-body">
         <table className="table">
           <thead>
@@ -11,7 +30,13 @@ export default function QuizList({ select, handleSelect, quiz }) {
               <th>Thumbnail</th>
               <th>Title</th>
               <th>Question</th>
-              <th>Created At</th>
+              <th>
+                <button className="btn" onClick={handleOrderby}>
+                  {sortBy === "desc" && <FaArrowUp />}
+                  {sortBy === "asc" && <FaArrowDown />}
+                  <span className="ml-1">Creation Date</span>
+                </button>
+              </th>
               <th>Action</th>
             </tr>
           </thead>
@@ -40,7 +65,10 @@ export default function QuizList({ select, handleSelect, quiz }) {
                     >
                       <FaPenFancy />
                     </button>
-                    <button className="btn btn-outline-danger mr-1">
+                    <button
+                      className="btn btn-outline-danger mr-1"
+                      onClick={() => deleteQuiz(item.id)}
+                    >
                       <FaRegTrashAlt />
                     </button>
                   </div>

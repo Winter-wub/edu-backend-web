@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Header from "../Components/Header";
 import { firestore } from "../Utils/firebase";
 import { Controller, useForm } from "react-hook-form";
@@ -22,44 +22,45 @@ export default function Categories() {
   const { register, control, handleSubmit } = useForm();
   const [sortBy, setSortBy] = useState("desc");
 
-  const fetchCourses = async () => {
-    if (type !== "") {
-      try {
-        setLoad(true);
-        const categoriesRef = firestore.collection(
-          config.collections.categories
-        );
-        const coursesRef = await categoriesRef
-          .doc(type)
-          .collection("courses")
-          .orderBy("created_at", sortBy)
-          .get();
-        const coursesData = coursesRef.docs.map((item) => {
-          const data = item.data();
-          return {
-            ...data,
-            id: item.id,
-            created_at:
-              data && data.created_at
-                ? moment(data.created_at.toDate()).format("DD/MM/YYYY hh:mm")
-                : "-",
-          };
-        });
-        console.log(coursesData);
-        setCourses(coursesData);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setLoad(false);
+  const fetchCourses = useCallback(() => {
+    (async () => {
+      if (type !== "") {
+        try {
+          setLoad(true);
+          const categoriesRef = firestore.collection(
+            config.collections.categories
+          );
+          const coursesRef = await categoriesRef
+            .doc(type)
+            .collection("courses")
+            .orderBy("created_at", sortBy)
+            .get();
+          const coursesData = coursesRef.docs.map((item) => {
+            const data = item.data();
+            return {
+              ...data,
+              id: item.id,
+              created_at:
+                data && data.created_at
+                  ? moment(data.created_at.toDate()).format("DD/MM/YYYY hh:mm")
+                  : "-",
+            };
+          });
+          setCourses(coursesData);
+        } catch (e) {
+          console.log(e);
+        } finally {
+          setLoad(false);
+        }
       }
-    }
-  };
+    })();
+  }, [sortBy, type]);
 
   useEffect(() => {
     (async () => {
       await fetchCourses();
     })();
-  }, [type, sortBy]);
+  }, [type, sortBy, fetchCourses]);
   const handleEdit = (data) => {
     setSelect(data);
   };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Header from "../Components/Header";
 import config from "../config.json";
 import { firestore } from "../Utils/firebase";
@@ -11,54 +11,55 @@ import swal from "sweetalert2";
 import { useForm, FormProvider } from "react-hook-form";
 
 export default function Quiz() {
-  // eslint-disable-next-line no-unused-vars
   const [load, setLoad] = useState(true);
   const [quiz, setQuiz] = useState([]);
+  const [sortBy, setSortBy] = useState("desc");
   const [select, setSelect] = useState(null);
   const [selectQuestion, setSelectQuestions] = useState(null);
   const methodsForQuestion = useForm();
-  let fetchTimeOut;
 
-  const fetchAllQuiz = async () => {
-    try {
-      setLoad(true);
-      const quizRef = await firestore.collection(config.collections.quiz);
-      const quizMapped = await Promise.all(
-        (await quizRef.get()).docs.map(async (item) => {
-          const data = item.data();
-          const questions = await firestore
-            .collection(config.collections.quiz)
-            .doc(item.id)
-            .collection("questions")
-            .orderBy("created_at", "asc")
-            .get();
+  const fetchAllQuiz = useCallback(() => {
+    (async () => {
+      try {
+        setLoad(true);
+        const quizRef = await firestore.collection(config.collections.quiz);
+        const quizMapped = await Promise.all(
+          (await quizRef.orderBy("created_at", sortBy).get()).docs.map(
+            async (item) => {
+              const data = item.data();
+              const questions = await firestore
+                .collection(config.collections.quiz)
+                .doc(item.id)
+                .collection("questions")
+                .get();
 
-          return {
-            ...data,
-            id: item.id,
-            created_at:
-              data && data.created_at
-                ? moment(data.created_at.toDate()).format("DD/MM/YYYY hh:mm")
-                : "-",
-            questionNum: questions.docs.length,
-            questions: questions.docs.map((item) => ({
-              id: item.id,
-              ...item.data(),
-            })),
-          };
-        })
-      );
+              return {
+                ...data,
+                id: item.id,
+                created_at:
+                  data && data.created_at
+                    ? moment(data.created_at.toDate()).format(
+                        "DD/MM/YYYY hh:mm"
+                      )
+                    : "-",
+                questionNum: questions.docs.length,
+                questions: questions.docs.map((item) => ({
+                  id: item.id,
+                  ...item.data(),
+                })),
+              };
+            }
+          )
+        );
 
-      setQuiz(quizMapped);
-    } catch (e) {
-      console.log(e);
-      fetchTimeOut = setTimeout(async () => {
-        await fetchAllQuiz();
-      }, 5000);
-    } finally {
-      setLoad(false);
-    }
-  };
+        setQuiz(quizMapped);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setLoad(false);
+      }
+    })();
+  }, [sortBy]);
 
   const fetchQuestionBySelectQuizId = async () => {
     try {
@@ -84,10 +85,7 @@ export default function Quiz() {
     (async () => {
       await fetchAllQuiz();
     })();
-    return () => {
-      clearTimeout(fetchTimeOut);
-    };
-  }, []);
+  }, [sortBy, fetchAllQuiz]);
 
   const handleSelect = (data) => {
     setSelect(data);
@@ -170,13 +168,104 @@ export default function Quiz() {
     }
   };
 
+  const addQuiz = async () => {
+    try {
+      const ref = await firestore.collection(config.collections.quiz).add({
+        thumbnail:
+          "https://cdn.iconscout.com/icon/free/png-256/no-image-1771002-1505134.png",
+        title: "Untitled",
+        created_at: new Date(),
+        updated_at: new Date(),
+      });
+
+      await firestore
+        .collection(config.collections.quiz)
+        .doc(ref.id)
+        .collection("questions")
+        .add({
+          choices: ["answer 1", "answer 2", "answer 3", "answer 4"],
+          question: "",
+          answer_index: 0,
+          created_at: new Date(),
+        });
+      await fetchAllQuiz();
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const saveQuiz = async (data) => {
+    try {
+      const result = await swal.fire({
+        icon: "info",
+        text: "Save Confirm",
+        showCancelButton: true,
+      });
+      if (result.value) {
+        await firestore
+          .collection(config.collections.quiz)
+          .doc(select.id)
+          .set(
+            {
+              ...data,
+              updated_at: new Date(),
+            },
+            { merge: true }
+          );
+        setSelect(null);
+        await fetchAllQuiz();
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  const deleteQuiz = async (id) => {
+    try {
+      const result = await swal.fire({
+        icon: "error",
+        text: "Confirm Delete This Exercise",
+        showCancelButton: true,
+      });
+
+      if (result.value) {
+        await firestore.collection(config.collections.quiz).doc(id).delete();
+      }
+      await fetchAllQuiz();
+    } catch (e) {
+      console.log(e);
+      await swal.fire({
+        text: "Please try again",
+        icon: "error",
+      });
+    }
+  };
+
+  const handleOrderby = () => {
+    if (sortBy === "desc") {
+      setSortBy("asc");
+    } else {
+      setSortBy("desc");
+    }
+  };
+
   return (
     <>
       <Header />
       <div className="container-fluid">
         <div className="row mt-3 g-2">
           <div className={`col ${select ? "d-none" : ""}`}>
-            <QuizList select={select} handleSelect={handleSelect} quiz={quiz} />
+            {!load && (
+              <QuizList
+                select={select}
+                handleSelect={handleSelect}
+                quiz={quiz}
+                addQuiz={addQuiz}
+                deleteQuiz={deleteQuiz}
+                sortBy={sortBy}
+                handleOrderby={handleOrderby}
+              />
+            )}
           </div>
           {select && (
             <div className="col">
@@ -195,7 +284,7 @@ export default function Quiz() {
                 <div className="card-body">
                   <div className="row justify-content-center">
                     <div className="col-lg-3">
-                      <QuizInfo select={select} />
+                      <QuizInfo select={select} saveQuiz={saveQuiz} />
                     </div>
                   </div>
                   <div className="row mt-2 pt-2 bg-secondary rounded">

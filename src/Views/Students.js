@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Header from "../Components/Header";
 import { firestore } from "../Utils/firebase";
 import config from "../config.json";
@@ -13,33 +13,37 @@ export default function Students() {
   const [select, setSelect] = useState(null);
   const [load, setLoad] = useState(true);
   const { handleSubmit, register } = useForm();
-  const fetchStudents = async () => {
-    try {
-      setLoad(true);
-      const studentsRef = await firestore
-        .collection(config.collections.students)
-        .orderBy("created_at", sortBy)
-        .get();
-      const studentsData = studentsRef.docs.map((item) => ({
-        ...item.data(),
-        id: item.id,
-        birth_date: moment(item.data().birth_date.toDate()).format(
-          "YYYY-MM-DD"
-        ),
-        created_at:
-          item && item?.data()?.created_at
-            ? moment(item.data().created_at.toDate()).format("DD/MM/YYYY hh:mm")
-            : "-",
-      }));
-      setStudents(studentsData);
-      setLoad(false);
-    } catch (e) {
-      console.log(e);
-      await fetchStudents();
-    } finally {
-      setLoad(false);
-    }
-  };
+  const fetchStudents = useCallback(() => {
+    (async () => {
+      try {
+        setLoad(true);
+        const studentsRef = await firestore
+          .collection(config.collections.students)
+          .orderBy("created_at", sortBy)
+          .get();
+        const studentsData = studentsRef.docs.map((item) => ({
+          ...item.data(),
+          id: item.id,
+          birth_date: moment(item.data().birth_date.toDate()).format(
+            "YYYY-MM-DD"
+          ),
+          created_at:
+            item && item?.data()?.created_at
+              ? moment(item.data().created_at.toDate()).format(
+                  "DD/MM/YYYY hh:mm"
+                )
+              : "-",
+        }));
+        setStudents(studentsData);
+        setLoad(false);
+      } catch (e) {
+        console.log(e);
+        await fetchStudents();
+      } finally {
+        setLoad(false);
+      }
+    })();
+  }, [sortBy]);
   const handleEdit = (data) => {
     setSelect(data);
   };
@@ -47,7 +51,7 @@ export default function Students() {
     (async () => {
       await fetchStudents();
     })();
-  }, [sortBy]);
+  }, [sortBy, fetchStudents]);
   const handleOrderby = () => {
     if (sortBy === "desc") {
       setSortBy("asc");

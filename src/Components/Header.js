@@ -11,7 +11,7 @@ export default function Header() {
         history.push("/login");
       }
     });
-  }, []);
+  }, [history]);
 
   const handleLoginOut = async () => {
     await auth.signOut();
