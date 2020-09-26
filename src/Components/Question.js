@@ -18,7 +18,7 @@ export default function Question({
   const { register, control, handleSubmit, errors } = useFormContext();
   return (
     <div className="col">
-      <div className="card mt-2 mb-2">
+      <div className="card">
         <div className="card-header">
           <div className="input-group">
             <label className="input-group-text">Question</label>
