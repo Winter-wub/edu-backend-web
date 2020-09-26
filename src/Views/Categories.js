@@ -7,6 +7,7 @@ import swal from "sweetalert2";
 import config from "../config.json";
 import moment from "moment";
 import CourseList from "../Components/CourseList";
+import Creatable from "react-select/creatable";
 
 export default function Categories() {
   const [courses, setCourses] = useState([]);
@@ -15,6 +16,8 @@ export default function Categories() {
   const [select, setSelect] = useState(null);
   const { register, control, handleSubmit, reset } = useForm();
   const [sortBy, setSortBy] = useState("desc");
+  const [typeOptions, setTypeOptions] = useState([]);
+  const [isCreateType, setCreateType] = useState(false);
 
   const fetchCourses = useCallback(() => {
     (async () => {
@@ -41,6 +44,27 @@ export default function Categories() {
             };
           });
           setCourses(coursesData);
+
+          const appConfig = (
+            await firestore
+              .collection(config.collections.app_config)
+              .doc("categories")
+              .get()
+          ).data();
+
+          if (type === "videos") {
+            setTypeOptions(
+              appConfig.videos_type.map((i) => ({ label: i, value: i }))
+            );
+          } else if (type === "essays") {
+            setTypeOptions(
+              appConfig.essays_type.map((i) => ({ label: i, value: i }))
+            );
+          } else {
+            setTypeOptions(
+              appConfig.vocab_type.map((i) => ({ label: i, value: i }))
+            );
+          }
         } catch (e) {
           console.log(e);
         } finally {
@@ -49,7 +73,6 @@ export default function Categories() {
       }
     })();
   }, [sortBy, type]);
-
   useEffect(() => {
     (async () => {
       await fetchCourses();
@@ -58,6 +81,10 @@ export default function Categories() {
   const handleEdit = (data) => {
     reset({
       ...data,
+      type: {
+        label: data.type,
+        value: data.type,
+      },
     });
     setSelect(data);
   };
@@ -82,6 +109,7 @@ export default function Categories() {
           .set(
             {
               ...data,
+              type: data.type.value,
               updated_at: new Date(),
             },
             { merge: true }
@@ -146,6 +174,48 @@ export default function Categories() {
     } else {
       setSortBy("desc");
     }
+  };
+  const createType = (value, onChange) => {
+    (async () => {
+      try {
+        setCreateType(true);
+        const newOption = {
+          value,
+          label: value,
+        };
+
+        const newOptions = [...typeOptions, newOption];
+        let data = {};
+        if (type === "videos") {
+          data = {
+            videos_type: newOptions.map((i) => i.value),
+          };
+        } else if (type === "essays") {
+          data = {
+            essays_type: newOptions.map((i) => i.value),
+          };
+        } else {
+          data = {
+            vocal_type: newOptions.map((i) => i.value),
+          };
+        }
+        await firestore
+          .collection(config.collections.app_config)
+          .doc("categories")
+          .set(
+            {
+              ...data,
+            },
+            { merge: true }
+          );
+        setTypeOptions((prev) => [...prev, newOption]);
+        onChange(newOption);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        setCreateType(false);
+      }
+    })();
   };
   return (
     <>
@@ -233,11 +303,25 @@ export default function Categories() {
                     </div>
                     <div className="mb-2">
                       <label className="form-label">Type:</label>
-                      <input
+                      <Controller
                         name="type"
-                        defaultValue={select.type}
-                        className="form-control"
-                        ref={register}
+                        defaultValue={{
+                          value: select.type,
+                          label: select.type,
+                        }}
+                        control={control}
+                        render={({ value, onChange }) => (
+                          <Creatable
+                            isDisabled={isCreateType}
+                            isLoading={isCreateType}
+                            value={value}
+                            onChange={onChange}
+                            options={typeOptions}
+                            onCreateOption={(value) =>
+                              createType(value, onChange)
+                            }
+                          />
+                        )}
                       />
                     </div>
                     {type === "videos" && (
