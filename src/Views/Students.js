@@ -24,9 +24,6 @@ export default function Students() {
         const studentsData = studentsRef.docs.map((item) => ({
           ...item.data(),
           id: item.id,
-          birth_date: moment(item.data().birth_date.toDate()).format(
-            "YYYY-MM-DD"
-          ),
           created_at:
             item && item?.data()?.created_at
               ? moment(item.data().created_at.toDate()).format(
@@ -64,8 +61,6 @@ export default function Students() {
     Object.keys(nullishData).forEach((key) => {
       if (!nullishData[key]) {
         delete nullishData[key];
-      } else if (key === "birth_date") {
-        nullishData[key] = new Date(nullishData[key]);
       }
     });
     try {
@@ -180,16 +175,6 @@ export default function Students() {
                         disabled
                         name="email"
                         defaultValue={select.email}
-                        className="form-control"
-                        ref={register}
-                      />
-                    </div>
-                    <div className="mb-2">
-                      <label className="form-label">Birth Date:</label>
-                      <input
-                        type="date"
-                        name="birth_date"
-                        defaultValue={select.birth_date}
                         className="form-control"
                         ref={register}
                       />
