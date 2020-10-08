@@ -10,6 +10,7 @@ import QuizList from "../Components/QuizList";
 import swal from "sweetalert2";
 import { FormProvider, useForm } from "react-hook-form";
 import Spelling from "../Components/Spelling";
+import Matching from "../Components/Matching";
 
 const TooltipAnswer = ({ answers }) => {
   return (
@@ -170,6 +171,19 @@ export default function Quiz() {
             ...data,
             updated_at: new Date(),
           };
+        } else if (select.type === "matching") {
+          payload = {
+            Categories: data.Categories.map((e) => e.value),
+            answers: data.Categories.reduce((prev, cat, i) => {
+              const answers = cat.answers.map((e) => ({
+                type: "text",
+                text: e.text,
+                category_index: i,
+              }));
+              return [...prev, ...answers];
+            }, []),
+            updated_at: new Date(),
+          };
         }
         await firestore
           .collection(config.collections.quiz)
@@ -234,6 +248,17 @@ export default function Quiz() {
             answer: "",
             created_at: new Date(),
           });
+      } else if (select.type === "matching") {
+        await firestore
+          .collection(config.collections.quiz)
+          .doc(select.id)
+          .collection("questions")
+          .add({
+            question: "",
+            answers: [],
+            Categories: [],
+            created_at: new Date(),
+          });
       }
       await fetchQuestionBySelectQuizId();
     } catch (e) {
@@ -274,6 +299,17 @@ export default function Quiz() {
           .add({
             answer: "",
             question: "",
+            created_at: new Date(),
+          });
+      } else if (type === "matching") {
+        await firestore
+          .collection(config.collections.quiz)
+          .doc(ref.id)
+          .collection("questions")
+          .add({
+            answers: [],
+            question: "",
+            Categories: [],
             created_at: new Date(),
           });
       }
@@ -499,22 +535,40 @@ export default function Quiz() {
                           style={{ height: 300 }}
                         >
                           <ul className="list-group">
-                            {select.questions.map((item, id) => (
-                              <li
-                                key={item.id}
-                                className={`list-group-item ${
-                                  selectQuestion?.id === item.id ? "active" : ""
-                                }`}
-                                onClick={() => {
-                                  methodsForQuestion.reset({
-                                    ...item,
-                                  });
-                                  setSelectQuestions(item);
-                                }}
-                              >
-                                No.{id + 1}
-                              </li>
-                            ))}
+                            {select.questions.map(
+                              ({ Categories, ...item }, id) => (
+                                <li
+                                  key={item.id}
+                                  className={`list-group-item ${
+                                    selectQuestion?.id === item.id
+                                      ? "active"
+                                      : ""
+                                  }`}
+                                  onClick={() => {
+                                    let setFields = {
+                                      ...item,
+                                    };
+                                    if (Categories) {
+                                      setFields = {
+                                        ...setFields,
+                                        Categories: Categories.map(
+                                          (value, i) => ({
+                                            value,
+                                            answers: item.answers.filter(
+                                              (e) => +e.category_index === i
+                                            ),
+                                          })
+                                        ),
+                                      };
+                                    }
+                                    methodsForQuestion.reset(setFields);
+                                    setSelectQuestions(item);
+                                  }}
+                                >
+                                  No.{id + 1}
+                                </li>
+                              )
+                            )}
                           </ul>
                         </div>
                       </div>
@@ -537,6 +591,13 @@ export default function Quiz() {
                             setSelectQuestion={setSelectQuestions}
                             saveQuestion={saveQuestion}
                             deleteQuestion={deleteQuestion}
+                          />
+                        )}
+                        {select.type === "matching" && (
+                          <Matching
+                            selectQuestion={selectQuestion}
+                            deleteQuestion={deleteQuestion}
+                            saveQuestion={saveQuestion}
                           />
                         )}
                       </FormProvider>

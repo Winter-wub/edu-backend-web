@@ -16,7 +16,7 @@ export default function QuizList({
   sortBy,
   handleOrderby,
 }) {
-  const createQuizTypeOptions = ["choice", "spelling"].map((i) => ({
+  const createQuizTypeOptions = ["choice", "spelling", "matching"].map((i) => ({
     label: i,
     value: i,
   }));
