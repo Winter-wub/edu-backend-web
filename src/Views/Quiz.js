@@ -9,6 +9,7 @@ import QuizInfo from "../Components/QuizInfo";
 import QuizList from "../Components/QuizList";
 import swal from "sweetalert2";
 import { FormProvider, useForm } from "react-hook-form";
+import Spelling from "../Components/Spelling";
 
 const TooltipAnswer = ({ answers }) => {
   return (
@@ -45,6 +46,7 @@ export default function Quiz() {
                 .collection(config.collections.quiz)
                 .doc(item.id)
                 .collection("questions")
+                .orderBy("created_at", "asc")
                 .get();
 
               return {
@@ -156,19 +158,25 @@ export default function Quiz() {
         showCancelButton: true,
       });
       if (result.value) {
+        let payload = {};
+        if (!select.type || select.type === "choice") {
+          payload = {
+            ...data,
+            answer_index: data.answer_index.value,
+            updated_at: new Date(),
+          };
+        } else if (select.type === "spelling") {
+          payload = {
+            ...data,
+            updated_at: new Date(),
+          };
+        }
         await firestore
           .collection(config.collections.quiz)
           .doc(select.id)
           .collection("questions")
           .doc(selectQuestion.id)
-          .set(
-            {
-              ...data,
-              answer_index: data.answer_index.value,
-              updated_at: new Date(),
-            },
-            { merge: true }
-          );
+          .set(payload, { merge: true });
         setSelectQuestions(null);
         await fetchQuestionBySelectQuizId();
       }
@@ -205,16 +213,28 @@ export default function Quiz() {
 
   const addQuestion = async () => {
     try {
-      await firestore
-        .collection(config.collections.quiz)
-        .doc(select.id)
-        .collection("questions")
-        .add({
-          choices: ["answer 1", "answer 2", "answer 3", "answer 4"],
-          question: "",
-          answer_index: 0,
-          created_at: new Date(),
-        });
+      if (!select.type || select.type === "choice") {
+        await firestore
+          .collection(config.collections.quiz)
+          .doc(select.id)
+          .collection("questions")
+          .add({
+            choices: ["answer 1", "answer 2", "answer 3", "answer 4"],
+            question: "",
+            answer_index: 0,
+            created_at: new Date(),
+          });
+      } else if (select.type === "spelling") {
+        await firestore
+          .collection(config.collections.quiz)
+          .doc(select.id)
+          .collection("questions")
+          .add({
+            question: "",
+            answer: "",
+            created_at: new Date(),
+          });
+      }
       await fetchQuestionBySelectQuizId();
     } catch (e) {
       console.log(e);
@@ -225,7 +245,7 @@ export default function Quiz() {
     }
   };
 
-  const addQuiz = async () => {
+  const addQuiz = async (type) => {
     try {
       const ref = await firestore.collection(config.collections.quiz).add({
         thumbnail:
@@ -233,18 +253,30 @@ export default function Quiz() {
         title: "Untitled",
         created_at: new Date(),
         updated_at: new Date(),
+        type,
       });
-
-      await firestore
-        .collection(config.collections.quiz)
-        .doc(ref.id)
-        .collection("questions")
-        .add({
-          choices: ["answer 1", "answer 2", "answer 3", "answer 4"],
-          question: "",
-          answer_index: 0,
-          created_at: new Date(),
-        });
+      if (type === "choice") {
+        await firestore
+          .collection(config.collections.quiz)
+          .doc(ref.id)
+          .collection("questions")
+          .add({
+            choices: ["answer 1", "answer 2", "answer 3", "answer 4"],
+            question: "",
+            answer_index: 0,
+            created_at: new Date(),
+          });
+      } else if (type === "spelling") {
+        await firestore
+          .collection(config.collections.quiz)
+          .doc(ref.id)
+          .collection("questions")
+          .add({
+            answer: "",
+            question: "",
+            created_at: new Date(),
+          });
+      }
       await fetchAllQuiz();
     } catch (e) {
       console.log(e);
@@ -306,6 +338,13 @@ export default function Quiz() {
     }
   };
 
+  const closeSelectQuiz = () => {
+    setSelect(null);
+    setSelectQuestions(null);
+    setAnsFromStudents([]);
+    setSelectStudent(null);
+  };
+
   return (
     <>
       <Header />
@@ -332,7 +371,7 @@ export default function Quiz() {
                     <div className="h4">{select.title}</div>
                     <button
                       className="btn btn-danger rounded-circle ml-auto"
-                      onClick={() => setSelect(null)}
+                      onClick={closeSelectQuiz}
                     >
                       <FaTimes />
                     </button>
@@ -351,7 +390,7 @@ export default function Quiz() {
                         <div className="text-primary h4 rounded p-1">
                           Who have done exercise
                         </div>
-                        {answerFromStudents.map((ele) => (
+                        {answerFromStudents?.map((ele) => (
                           <div
                             className={`card mb-1 ${
                               ele.id === selectStudent?.id ? "bg-dark" : ""
@@ -376,7 +415,7 @@ export default function Quiz() {
                               </div>
                             </div>
                           </div>
-                        ))}
+                        )) ?? ""}
                       </div>
                     </div>
                     {selectStudent && (
@@ -390,7 +429,7 @@ export default function Quiz() {
                               className="overflow-auto"
                               style={{ height: 300 }}
                             >
-                              {selectStudent.answers.map((ans) => {
+                              {selectStudent?.answers?.map((ans) => {
                                 const id = ans.id.replace(/[0-9]/g, "");
                                 return (
                                   <div
@@ -468,8 +507,7 @@ export default function Quiz() {
                                 }`}
                                 onClick={() => {
                                   methodsForQuestion.reset({
-                                    choices: item.choices,
-                                    question: item.question,
+                                    ...item,
                                   });
                                   setSelectQuestions(item);
                                 }}
@@ -483,13 +521,24 @@ export default function Quiz() {
                     </div>
                     {selectQuestion && (
                       <FormProvider {...methodsForQuestion}>
-                        <Question
-                          selectQuestion={selectQuestion}
-                          selectQuiz={select}
-                          setSelectQuestion={setSelectQuestions}
-                          saveQuestion={saveQuestion}
-                          deleteQuestion={deleteQuestion}
-                        />
+                        {select.type === "spelling" && (
+                          <Spelling
+                            selectQuestion={selectQuestion}
+                            saveQuestion={saveQuestion}
+                            deleteQuestion={deleteQuestion}
+                          />
+                        )}
+                        {(!select.type ||
+                          select.type === "" ||
+                          select.type === "choice") && (
+                          <Question
+                            selectQuestion={selectQuestion}
+                            selectQuiz={select}
+                            setSelectQuestion={setSelectQuestions}
+                            saveQuestion={saveQuestion}
+                            deleteQuestion={deleteQuestion}
+                          />
+                        )}
                       </FormProvider>
                     )}
                   </div>

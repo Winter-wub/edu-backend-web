@@ -2,10 +2,10 @@ import {
   FaArrowDown,
   FaArrowUp,
   FaPenFancy,
-  FaPlus,
   FaRegTrashAlt,
 } from "react-icons/fa";
-import React from "react";
+import React, { useState } from "react";
+import Select from "react-select";
 
 export default function QuizList({
   select,
@@ -16,12 +16,35 @@ export default function QuizList({
   sortBy,
   handleOrderby,
 }) {
+  const createQuizTypeOptions = ["choice", "spelling"].map((i) => ({
+    label: i,
+    value: i,
+  }));
+
+  const [create, setCreate] = useState(null);
+
   return (
     <div className="card">
       <div className="card-header">
-        <button className="btn btn-success" onClick={addQuiz}>
-          Add Exercise <FaPlus />
-        </button>
+        <div className="w-25">
+          <Select
+            styles={{
+              placeholder: () => ({
+                color: "#28a745",
+                fontWeight: 5,
+              }),
+            }}
+            isSearchable={false}
+            value={create}
+            options={createQuizTypeOptions}
+            placeholder="📦 Create Exercise"
+            onChange={async ({ value }) => {
+              setCreate(value);
+              await addQuiz(value);
+              setCreate(null);
+            }}
+          />
+        </div>
       </div>
       <div className="card-body">
         <table className="table">
@@ -29,6 +52,7 @@ export default function QuizList({
             <tr>
               <th>Thumbnail</th>
               <th>Title</th>
+              <th>Type</th>
               <th>Question</th>
               <th>
                 <button className="btn" onClick={handleOrderby}>
@@ -55,6 +79,7 @@ export default function QuizList({
                   />
                 </td>
                 <td>{item.title}</td>
+                <td>{item?.type ?? "choice"}</td>
                 <td>{item.questionNum}</td>
                 <td>{item.created_at}</td>
                 <td>
