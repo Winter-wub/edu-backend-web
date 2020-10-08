@@ -173,6 +173,7 @@ export default function Quiz() {
           };
         } else if (select.type === "matching") {
           payload = {
+            question: data.question,
             Categories: data.Categories.map((e) => e.value),
             answers: data.Categories.reduce((prev, cat, i) => {
               const answers = cat.answers.map((e) => ({
