@@ -56,6 +56,17 @@ export default function Question({
                 }}
               />
             </div>
+            <div className="col-5">
+              <label className="form-label">
+                Image URL (recommend size 480x380)
+              </label>
+              <input
+                className="form-control"
+                name="image_url"
+                defaultValue={selectQuestion?.image_url}
+                ref={register({ required: false })}
+              />
+            </div>
             <div className="col-12">
               <ul className="list-group">
                 {selectQuestion.choices.map((choice, id) => (

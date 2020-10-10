@@ -161,6 +161,9 @@ export default function Quiz() {
       if (result.value) {
         let payload = {};
         if (!select.type || select.type === "choice") {
+          if (data.image_url.length <= 0) {
+            delete data.image_url;
+          }
           payload = {
             ...data,
             answer_index: data.answer_index.value,
@@ -549,6 +552,12 @@ export default function Quiz() {
                                     let setFields = {
                                       ...item,
                                     };
+                                    if (!item?.image_url) {
+                                      setFields = {
+                                        ...setFields,
+                                        image_url: "",
+                                      };
+                                    }
                                     if (Categories) {
                                       setFields = {
                                         ...setFields,
