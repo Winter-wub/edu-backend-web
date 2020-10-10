@@ -8,6 +8,7 @@ import config from "../config.json";
 import moment from "moment";
 import CourseList from "../Components/CourseList";
 import Creatable from "react-select/creatable";
+import { FaPlus } from "react-icons/all";
 
 export default function Categories() {
   const [courses, setCourses] = useState([]);
@@ -217,6 +218,21 @@ export default function Categories() {
       }
     })();
   };
+  const createNewContent = async () => {
+    await firestore
+      .collection(config.collections.categories)
+      .doc(type)
+      .collection("courses")
+      .add({
+        title: "Untitled",
+        created_at: new Date(),
+        updated_at: new Date(),
+        thumbnail:
+          "https://cdn.iconscout.com/icon/free/png-256/no-image-1771002-1505134.png",
+      });
+
+    await fetchCourses();
+  };
   return (
     <>
       <Header />
@@ -255,6 +271,15 @@ export default function Categories() {
             </div>
           </div>
           <div className="row mt-3 g-2">
+            <div className="col-12">
+              <button
+                className="btn btn-success"
+                onClick={createNewContent}
+                disabled={load}
+              >
+                <FaPlus /> Create
+              </button>
+            </div>
             <div className="col-6">
               {type !== "" && (
                 <CourseList
