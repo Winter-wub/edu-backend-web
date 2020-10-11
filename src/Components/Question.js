@@ -58,7 +58,7 @@ export default function Question({
             </div>
             <div className="col-5">
               <label className="form-label">
-                Image URL (recommend size 480x380)
+                Image URL (recommend size 480x380) optional
               </label>
               <input
                 className="form-control"

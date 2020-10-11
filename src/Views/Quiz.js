@@ -160,10 +160,10 @@ export default function Quiz() {
       });
       if (result.value) {
         let payload = {};
+        if (data.image_url.length <= 0) {
+          delete data.image_url;
+        }
         if (!select.type || select.type === "choice") {
-          if (data.image_url.length <= 0) {
-            delete data.image_url;
-          }
           payload = {
             ...data,
             answer_index: data.answer_index.value,
@@ -189,6 +189,7 @@ export default function Quiz() {
             updated_at: new Date(),
           };
         }
+
         await firestore
           .collection(config.collections.quiz)
           .doc(select.id)

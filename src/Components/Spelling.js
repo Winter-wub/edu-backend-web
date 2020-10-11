@@ -44,6 +44,17 @@ export default function Spelling({
                 })}
               />
             </div>
+            <div className="col-5">
+              <label className="form-label">
+                Image URL (recommend size 480x380) optional
+              </label>
+              <input
+                className="form-control"
+                name="image_url"
+                defaultValue={selectQuestion?.image_url}
+                ref={register({ required: false })}
+              />
+            </div>
           </div>
         </div>
         <div className="card-footer">
