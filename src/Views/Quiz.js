@@ -12,6 +12,13 @@ import { FormProvider, useForm } from "react-hook-form";
 import Spelling from "../Components/Spelling";
 import Matching from "../Components/Matching";
 
+const answersIndexOptions = [
+  { label: 1, value: 0 },
+  { label: 2, value: 1 },
+  { label: 3, value: 2 },
+  { label: 4, value: 3 },
+];
+
 const TooltipAnswer = ({ answers }) => {
   return (
     <div>
@@ -379,11 +386,45 @@ export default function Quiz() {
     }
   };
 
-  const closeSelectQuiz = () => {
+  const closeSelectQuiz = async () => {
     setSelect(null);
     setSelectQuestions(null);
     setAnsFromStudents([]);
     setSelectStudent(null);
+    await fetchAllQuiz();
+  };
+
+  const handleSelectQuestion = ({ Categories, ...item }) => {
+    let setFields = {
+      ...item,
+    };
+    if (!item?.image_url) {
+      setFields = {
+        ...setFields,
+        image_url: "",
+      };
+    }
+    if (Categories) {
+      setFields = {
+        ...setFields,
+        Categories: Categories.map((value, i) => ({
+          value,
+          answers: item.answers.filter((e) => +e.category_index === i),
+        })),
+      };
+    }
+
+    if (item?.answer_index) {
+      setFields = {
+        ...setFields,
+        answer_index: answersIndexOptions.find(
+          (i) => i.value === item.answer_index
+        ),
+      };
+    }
+    methodsForQuestion.reset();
+    methodsForQuestion.reset(setFields);
+    setSelectQuestions(item);
   };
 
   return (
@@ -540,46 +581,17 @@ export default function Quiz() {
                           style={{ height: 300 }}
                         >
                           <ul className="list-group">
-                            {select.questions.map(
-                              ({ Categories, ...item }, id) => (
-                                <li
-                                  key={item.id}
-                                  className={`list-group-item ${
-                                    selectQuestion?.id === item.id
-                                      ? "active"
-                                      : ""
-                                  }`}
-                                  onClick={() => {
-                                    let setFields = {
-                                      ...item,
-                                    };
-                                    if (!item?.image_url) {
-                                      setFields = {
-                                        ...setFields,
-                                        image_url: "",
-                                      };
-                                    }
-                                    if (Categories) {
-                                      setFields = {
-                                        ...setFields,
-                                        Categories: Categories.map(
-                                          (value, i) => ({
-                                            value,
-                                            answers: item.answers.filter(
-                                              (e) => +e.category_index === i
-                                            ),
-                                          })
-                                        ),
-                                      };
-                                    }
-                                    methodsForQuestion.reset(setFields);
-                                    setSelectQuestions(item);
-                                  }}
-                                >
-                                  No.{id + 1}
-                                </li>
-                              )
-                            )}
+                            {select.questions.map((item, id) => (
+                              <li
+                                key={item.id}
+                                className={`list-group-item ${
+                                  selectQuestion?.id === item.id ? "active" : ""
+                                }`}
+                                onClick={() => handleSelectQuestion(item)}
+                              >
+                                No.{id + 1}
+                              </li>
+                            ))}
                           </ul>
                         </div>
                       </div>
