@@ -173,7 +173,7 @@ export default function Quiz() {
         if (!select.type || select.type === "choice") {
           payload = {
             ...data,
-            answer_index: data.answer_index.value,
+            answer_index: data?.answer_index?.value ?? 0,
             updated_at: new Date(),
           };
         } else if (select.type === "spelling") {
@@ -208,6 +208,10 @@ export default function Quiz() {
       }
     } catch (e) {
       console.log(e);
+      await swal.fire({
+        icon: "error",
+        text: "ไม่สามารถบันทึกข้อมูลได้ อาจเกิดจากบ้าง Field ไม่ได้ใส่ข้อมูล",
+      });
     }
   };
 
