@@ -167,7 +167,7 @@ export default function Quiz() {
       });
       if (result.value) {
         let payload = {};
-        if (data.image_url.length <= 0) {
+        if (data?.image_url?.length <= 0) {
           delete data.image_url;
         }
         if (!select.type || select.type === "choice") {
